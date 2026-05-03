@@ -28,6 +28,60 @@ REFUSAL = (
 )
 
 
+# --- small-talk routing -----------------------------------------------------
+# Pure greetings / farewells / thanks should not be sent through retrieval at all.
+# They would otherwise score below SIMILARITY_THRESHOLD and get the refusal text,
+# which feels rude. We match conservatively: only short messages that are
+# *entirely* small talk; mixed messages like "hi, what services run on iris?"
+# still go through normal retrieval.
+
+_GREETINGS = {
+    "hi", "hello", "hey", "yo", "hola", "howdy", "greetings",
+    "hi there", "hello there", "hey there",
+    "good morning", "good afternoon", "good evening", "good day",
+    "morning", "afternoon", "evening",
+}
+_FAREWELLS = {
+    "bye", "goodbye", "good bye", "see you", "see ya", "see you later",
+    "take care", "later", "cya", "ttyl", "have a good one", "have a nice day",
+}
+_THANKS = {
+    "thanks", "thank you", "thank you very much", "thanks a lot",
+    "ty", "thx", "appreciate it", "much appreciated", "cheers",
+}
+
+
+def detect_smalltalk(text: str) -> str | None:
+    """Return 'greeting' | 'farewell' | 'thanks' if the message is purely
+    small talk; otherwise None."""
+    t = text.strip().lower().rstrip(".!?,")
+    if not t:
+        return None
+    if len(t.split()) > 6:
+        return None
+    if t in _GREETINGS:
+        return "greeting"
+    if t in _FAREWELLS:
+        return "farewell"
+    if t in _THANKS:
+        return "thanks"
+    return None
+
+
+def smalltalk_reply(kind: str) -> str:
+    if kind == "greeting":
+        return (
+            "Hi! I'm here to answer questions about the **Iris Accelerator** "
+            "documentation — architecture, services, IMS SDK, troubleshooting, "
+            "and so on. What would you like to know?"
+        )
+    if kind == "farewell":
+        return "Goodbye! Come back anytime you have questions about the Iris Accelerator."
+    if kind == "thanks":
+        return "You're welcome! Anything else you'd like to know about the Iris Accelerator?"
+    return ""
+
+
 def build_rag_chain(llm, vectorstore):
     retriever = vectorstore.as_retriever(search_kwargs={"k": settings.TOP_K})
 

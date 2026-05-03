@@ -5,7 +5,13 @@ from langchain_core.messages import HumanMessage, AIMessage
 from app.config import settings
 from app.llm import build_llm
 from app.retriever import build_embeddings, load_vectorstore
-from app.rag_chain import build_rag_chain, is_in_scope, REFUSAL
+from app.rag_chain import (
+    build_rag_chain,
+    is_in_scope,
+    REFUSAL,
+    detect_smalltalk,
+    smalltalk_reply,
+)
 from app.ui import render_header, render_sidebar, render_sources, password_gate
 
 VERSION = "0.1.0"
@@ -65,6 +71,16 @@ def main():
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
         st.markdown(user_input)
+
+    smalltalk = detect_smalltalk(user_input)
+    if smalltalk:
+        reply = smalltalk_reply(smalltalk)
+        with st.chat_message("assistant"):
+            st.markdown(reply)
+        st.session_state.messages.append(
+            {"role": "assistant", "content": reply, "sources": []}
+        )
+        return
 
     in_scope, score = is_in_scope(vectorstore, user_input)
 

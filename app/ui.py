@@ -11,7 +11,7 @@ def render_header():
         except Exception:
             pass
     with col2:
-        st.title("Iris Accelerator — Documentation Q&A")
+        st.title("Iris Accelerator — Documentation Q&A (MVP)")
         st.markdown(
             f"<hr style='border:0;border-top:3px solid {settings.BRAND_COLOR};margin:0 0 8px 0;'>",
             unsafe_allow_html=True,
