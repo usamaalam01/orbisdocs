@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orbis Iris Accelerator — RAG Demo MVP · SPEC</title>
+<style>
+  :root {
+    --brand: #1F7A5C;
+    --brand-dark: #155841;
+    --brand-soft: #E8F3EF;
+    --accent: #D14F2A;
+    --ink: #1B1F1D;
+    --muted: #5C6864;
+    --line: #E1E6E4;
+    --bg: #FBFCFB;
+    --code-bg: #F4F6F5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 32px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static !important; }
+  }
+
+  /* Header */
+  header.hero {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: white;
+    padding: 40px 32px;
+    margin-bottom: 32px;
+  }
+  header.hero .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  header.hero img.logo {
+    width: 96px;
+    height: 96px;
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  header.hero h1 {
+    margin: 0 0 6px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  header.hero .tag {
+    margin: 0;
+    opacity: 0.92;
+    font-size: 16px;
+  }
+  header.hero .meta {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    opacity: 0.85;
+  }
+  header.hero .meta span {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  /* TOC */
+  nav.toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 16px 0 16px 8px;
+    border-left: 2px solid var(--line);
+    font-size: 14px;
+  }
+  nav.toc h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 0 0 12px 12px;
+  }
+  nav.toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: tocsection;
+  }
+  nav.toc li { margin: 0; }
+  nav.toc a {
+    display: block;
+    padding: 6px 12px;
+    color: var(--ink);
+    border-left: 2px solid transparent;
+    margin-left: -10px;
+    counter-increment: tocsection;
+  }
+  nav.toc a::before {
+    content: counter(tocsection) ".  ";
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  nav.toc a:hover { color: var(--brand); border-left-color: var(--brand); text-decoration: none; }
+
+  /* Main */
+  main { padding: 0 24px 80px 0; min-width: 0; }
+  section { margin-bottom: 48px; scroll-margin-top: 24px; }
+  section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--brand-soft);
+    color: var(--brand-dark);
+  }
+  section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 8px 0;
+    color: var(--ink);
+  }
+  section p { margin: 0 0 12px 0; }
+  section ul, section ol { margin: 0 0 12px 0; padding-left: 22px; }
+  section li { margin-bottom: 4px; }
+
+  /* Code */
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.92em;
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  pre code { background: transparent; padding: 0; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    background: var(--brand-soft);
+    color: var(--brand-dark);
+    font-weight: 600;
+  }
+
+  /* Callouts */
+  .callout {
+    border-left: 4px solid var(--brand);
+    background: var(--brand-soft);
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .callout.warn {
+    border-left-color: var(--accent);
+    background: #FBEEE8;
+  }
+  .callout strong { color: var(--brand-dark); }
+  .callout.warn strong { color: #8A2D11; }
+
+  /* Pills / status */
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .pill.done { background: var(--brand-soft); color: var(--brand-dark); }
+  .pill.todo { background: #FFF1E5; color: #8A4615; }
+
+  /* Checklist */
+  ul.checklist { list-style: none; padding-left: 0; }
+  ul.checklist li {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  ul.checklist .box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--line);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+  }
+  ul.checklist li.done .box { background: var(--brand); border-color: var(--brand); }
+  ul.checklist li.done .box::before { content: "✓"; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 32px 16px;
+    border-top: 1px solid var(--line);
+    margin-top: 60px;
+  }
+
+  @media print {
+    nav.toc { display: none; }
+    .layout { display: block; max-width: none; }
+    header.hero { background: var(--brand) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    section { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="inner">
+    <img src="images/logo.jpg" alt="Orbis logo" class="logo" />
+    <div>
+      <h1>Iris Accelerator — RAG Demo MVP</h1>
+      <p class="tag">Plain-English Q&amp;A over the Iris Accelerator documentation, for an Orbis management demo.</p>
+      <div class="meta">
+        <span>Streamlit + LangChain + Groq + FAISS</span>
+        <span>Python 3.11</span>
+        <span>Status: spec finalized</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Table of contents">
+    <h3>Sections</h3>
+    <ol>
+      <li><a href="#goal">Goal</a></li>
+      <li><a href="#scope">Scope</a></li>
+      <li><a href="#docs">Document sources</a></li>
+      <li><a href="#stack">Technology stack</a></li>
+      <li><a href="#config">Configuration</a></li>
+      <li><a href="#layout">Repository layout</a></li>
+      <li><a href="#index">Indexing pipeline</a></li>
+      <li><a href="#runtime">Runtime app</a></li>
+      <li><a href="#brand">Branding</a></li>
+      <li><a href="#deploy">Deployment</a></li>
+      <li><a href="#verify">Verification</a></li>
+      <li><a href="#open">Open items</a></li>
+      <li><a href="#risks">Risks &amp; mitigations</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <section id="goal">
+    <h2>1. Goal</h2>
+    <p>Show management that internal documentation can be queried in natural language with cited answers, using the Iris Accelerator docs (9 pages) as a concrete example. The MVP must be:</p>
+    <ul>
+      <li>Presentable in a live demo to non-technical stakeholders.</li>
+      <li>Deployable to Streamlit Community Cloud from the existing GitHub repo.</li>
+      <li>Configurable enough that the LLM provider, model, and API key can be swapped via a single config file.</li>
+    </ul>
+  </section>
+
+  <section id="scope">
+    <h2>2. Scope</h2>
+    <h3>In scope</h3>
+    <ul>
+      <li>Ingest the 9 listed Iris Accelerator pages from <code>docs.lab.orbisholding.com</code>.</li>
+      <li>Build a local FAISS vector index offline; commit it to the repo.</li>
+      <li>Streamlit chat UI with multi-turn history, streaming answers, and inline citations linking back to the original doc URLs.</li>
+      <li>Polite refusal for questions not covered by the docs.</li>
+      <li>Orbis-branded header (logo + accent color).</li>
+      <li>Deployable to Streamlit Community Cloud with a single <code>requirements.txt</code>.</li>
+    </ul>
+    <h3>Out of scope (MVP)</h3>
+    <ul>
+      <li>Authentication / SSO beyond an optional shared-secret password gate.</li>
+      <li>Crawling beyond the 9 listed URLs.</li>
+      <li>Automatic re-indexing on a schedule (manual rebuild only).</li>
+      <li>Evaluation harness, automated tests, feedback collection.</li>
+      <li>Reranker, hybrid search, query rewriting.</li>
+      <li>Image / diagram extraction from the docs.</li>
+      <li>Per-user usage limits or token accounting.</li>
+    </ul>
+  </section>
+
+  <section id="docs">
+    <h2>3. Document sources</h2>
+    <p>The list lives in <code>urls.txt</code> at the repo root so it can be edited without code changes.</p>
+<pre><code>http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/index.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/architecture.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/infrastructure.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/database.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/services.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/device-manager.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/imssdk.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/developer-guide.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/troubleshooting.html</code></pre>
+
+    <div class="callout warn">
+      <strong>TLS note.</strong> A test fetch was auto-upgraded to HTTPS and returned a <code>self signed certificate</code> error. The scraper must:
+      <ol>
+        <li>Honor the <code>http://</code> scheme (do not auto-upgrade), and</li>
+        <li>If the server redirects to HTTPS, retry with <code>requests.get(url, verify=False)</code> and suppress the <code>InsecureRequestWarning</code>.</li>
+      </ol>
+      Acceptable for a public-but-internal-IT-managed lab portal; documented as a code comment in <code>build_index.py</code>.
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2>4. Technology stack</h2>
+    <table>
+      <thead><tr><th>Layer</th><th>Choice</th></tr></thead>
+      <tbody>
+        <tr><td>Language</td><td>Python 3.11</td></tr>
+        <tr><td>Packaging</td><td><code>requirements.txt</code> (pip)</td></tr>
+        <tr><td>UI</td><td>Streamlit ≥ 1.32 (chat elements + streaming)</td></tr>
+        <tr><td>Orchestration</td><td>LangChain (<code>langchain</code>, <code>langchain-community</code>, <code>langchain-groq</code>, <code>langchain-huggingface</code>)</td></tr>
+        <tr><td>LLM (default)</td><td>Groq <code>llama-3.3-70b-versatile</code> via <code>langchain-groq</code></td></tr>
+        <tr><td>Embeddings</td><td><code>sentence-transformers/all-MiniLM-L6-v2</code> via <code>langchain-huggingface</code> (CPU)</td></tr>
+        <tr><td>Vector store</td><td>FAISS (<code>faiss-cpu</code>) — local, two-file persistence (<code>index.faiss</code> + <code>index.pkl</code>) under <code>vectorstore/</code></td></tr>
+        <tr><td>Scraper</td><td><code>requests</code> + <code>beautifulsoup4</code> + <code>markdownify</code></td></tr>
+        <tr><td>Config</td><td><code>python-dotenv</code>, single <code>.env</code> file</td></tr>
+        <tr><td>Branding</td><td>Orbis logo asset + Streamlit <code>theme</code> overrides</td></tr>
+        <tr><td>Hosting</td><td>Streamlit Community Cloud, deployed from existing GitHub repo</td></tr>
+      </tbody>
+    </table>
+
+    <h3><code>requirements.txt</code> (target)</h3>
+<pre><code>streamlit>=1.32
+langchain>=0.2
+langchain-community>=0.2
+langchain-groq>=0.1
+langchain-huggingface>=0.0.3
+faiss-cpu>=1.8
+sentence-transformers>=2.7
+beautifulsoup4>=4.12
+markdownify>=0.12
+requests>=2.31
+python-dotenv>=1.0</code></pre>
+  </section>
+
+  <section id="config">
+    <h2>5. Configuration</h2>
+    <p>Single <code>.env</code> file at repo root, loaded via <code>python-dotenv</code>. On Streamlit Community Cloud, the same keys are mirrored into the secrets UI in TOML format (see <a href="#deploy">§10</a>).</p>
+<pre><code># LLM provider — swap by changing these three values
+LLM_PROVIDER=groq                  # groq | openai | anthropic | azure | ollama
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_API_KEY=
+
+# Embeddings (local — no key needed for the default)
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+
+# Retrieval — cosine similarity in [0, 1], higher = better
+TOP_K=4
+SIMILARITY_THRESHOLD=0.35          # if best chunk's cosine score &lt; this, refuse as off-topic
+
+# Chunking (used by build_index.py)
+CHUNK_SIZE=800
+CHUNK_OVERLAP=120
+
+# Branding
+BRAND_COLOR=#1F7A5C                # deep teal-green, eye-picked from images/logo.jpg
+LOGO_PATH=images/logo.jpg
+
+# Optional access gate (leave empty to disable)
+APP_PASSWORD=</code></pre>
+    <p><code>.env.example</code> is committed; <code>.env</code> is gitignored.</p>
+    <p>The LangChain LLM is constructed in a small factory (<code>app/llm.py</code>) that switches on <code>LLM_PROVIDER</code> and returns a streaming-capable chat model. Adding a new provider = adding one branch.</p>
+  </section>
+
+  <section id="layout">
+    <h2>6. Repository layout</h2>
+<pre><code>DocsRAG/
+├── .env.example
+├── .gitignore
+├── README.md
+├── SPEC.md                       # source-of-truth spec
+├── SPEC.html                     # this presentation
+├── requirements.txt
+├── urls.txt                      # the 9 doc URLs, one per line
+├── build_index.py                # offline scraper + indexer
+├── streamlit_app.py              # Streamlit Cloud entrypoint
+├── app/
+│   ├── __init__.py
+│   ├── config.py                 # loads .env / st.secrets, exposes typed settings
+│   ├── llm.py                    # LangChain LLM factory (provider switch)
+│   ├── retriever.py              # loads persisted FAISS, returns retriever
+│   ├── rag_chain.py              # builds the LangChain RAG pipeline
+│   └── ui.py                     # Streamlit components (header, chat, citations)
+├── images/
+│   └── logo.jpg                  # Orbis logo, provided
+└── vectorstore/                  # committed, generated by build_index.py
+    ├── index.faiss
+    └── index.pkl</code></pre>
+  </section>
+
+  <section id="index">
+    <h2>7. Indexing pipeline (<code>build_index.py</code>)</h2>
+    <p>Run locally before each commit when docs change. The script loads <code>.env</code> at the top via <code>python-dotenv</code>, so <code>EMBEDDING_MODEL</code>, <code>CHUNK_SIZE</code>, and <code>CHUNK_OVERLAP</code> come from the same source as the runtime app.</p>
+    <ol>
+      <li>Read URLs from <code>urls.txt</code>.</li>
+      <li>For each URL, fetch HTML with <code>requests</code> (HTTP-first, fall back to <code>verify=False</code> HTTPS).</li>
+      <li>Parse with BeautifulSoup; extract the main content container (try <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>div.document</code>, <code>div.body</code> in order; fall back to <code>&lt;body&gt;</code>). Strip nav, footer, script, style.</li>
+      <li>Convert the cleaned HTML to markdown with <code>markdownify</code> so headings become <code>##</code> / <code>###</code> lines (this is what the splitter's heading-aware separators rely on).</li>
+      <li>Split with LangChain <code>RecursiveCharacterTextSplitter</code>, <code>chunk_size=CHUNK_SIZE</code>, <code>chunk_overlap=CHUNK_OVERLAP</code>, separators <code>["\n## ", "\n### ", "\n\n", "\n", " "]</code> (heading-aware).</li>
+      <li>Attach metadata to each chunk: <code>source_url</code>, <code>page_title</code> (from <code>&lt;title&gt;</code>), <code>section_heading</code> (nearest preceding <code>##</code> / <code>###</code> line), <code>chunk_index</code>.</li>
+      <li>Embed with <code>HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)</code>.</li>
+      <li>Build the index via <code>FAISS.from_documents(chunks, embeddings, distance_strategy=DistanceStrategy.MAX_INNER_PRODUCT, normalize_L2=True)</code> (gives cosine similarity in [0, 1]) and persist with <code>db.save_local("vectorstore")</code> — writes <code>index.faiss</code> and <code>index.pkl</code>.</li>
+      <li>Print a summary: pages fetched, chunks created, elapsed time.</li>
+    </ol>
+    <div class="callout warn">
+      <strong>Embedding ↔ index coupling.</strong> If you change <code>EMBEDDING_MODEL</code>, you <strong>must</strong> rerun <code>build_index.py</code> and recommit <code>vectorstore/</code>. Otherwise loading will fail with a dimension mismatch.
+    </div>
+    <p>Idempotent: rerunning overwrites both files in <code>vectorstore/</code>.</p>
+  </section>
+
+  <section id="runtime">
+    <h2>8. Runtime app (<code>streamlit_app.py</code>)</h2>
+
+    <h3>Layout</h3>
+    <ul>
+      <li><strong>Header:</strong> Orbis logo (left) + title "Iris Accelerator — Documentation Q&amp;A" + a subtle <code>BRAND_COLOR</code> divider.</li>
+      <li><strong>Sidebar:</strong> read-only display of model name, provider, top_k; a "Clear chat" button; a link to the source repo; app version.</li>
+      <li><strong>Main:</strong> chat area (Streamlit <code>st.chat_message</code> + <code>st.chat_input</code>).</li>
+      <li><strong>Optional gate:</strong> if <code>APP_PASSWORD</code> is set, render a single password input before the chat is shown.</li>
+    </ul>
+
+    <h3>Behavior</h3>
+    <ol>
+      <li>On first load (cached via <code>@st.cache_resource</code>):
+        <ul>
+          <li>Load <code>.env</code> (or <code>st.secrets</code> on Cloud).</li>
+          <li>Load the embeddings model.</li>
+          <li>Load the persisted FAISS index from <code>./vectorstore/</code> via <code>FAISS.load_local("vectorstore", embeddings, allow_dangerous_deserialization=True)</code>. The flag is required because LangChain pickles docstore metadata; safe here because we built and committed the file ourselves.</li>
+          <li>Construct the LLM via <code>app/llm.py</code> factory.</li>
+          <li>Build the LangChain RAG chain (history-aware retriever + answer generator).</li>
+        </ul>
+      </li>
+      <li>On each user turn:
+        <ul>
+          <li>Run history-aware retrieval (rewrite query using prior turns, then retrieve <code>TOP_K</code> chunks).</li>
+          <li>If the top chunk's cosine score is below <code>SIMILARITY_THRESHOLD</code>, return the canned refusal:
+            <div class="callout">"I can only answer questions about the Iris Accelerator documentation. Try asking about its architecture, services, infrastructure, device manager, IMS SDK, or troubleshooting."</div>
+          </li>
+          <li>Otherwise, stream the LLM answer token-by-token using <code>st.write_stream</code>.</li>
+          <li>After streaming completes, render a "Sources" section listing each unique <code>source_url</code> with the <code>page_title</code> and <code>section_heading</code> as a clickable link.</li>
+        </ul>
+      </li>
+      <li>Multi-turn: full message history is kept in <code>st.session_state.messages</code> and passed into the history-aware retriever.</li>
+    </ol>
+
+    <h3>System prompt (default, in <code>app/rag_chain.py</code>)</h3>
+<pre><code>You are Orbis Iris Accelerator's documentation assistant. Answer the user's
+question using ONLY the provided context excerpts. If the context does not
+contain the answer, say you don't know — do not invent details.
+
+Cite your sources inline using bracketed numbers like [1], [2] that map to the
+context excerpts in the order given. Keep answers concise and structured;
+prefer bullet lists for steps and short paragraphs for explanations.</code></pre>
+  </section>
+
+  <section id="brand">
+    <h2>9. Branding</h2>
+    <ul>
+      <li><strong>Logo file:</strong> <code>images/logo.jpg</code> — provided.</li>
+      <li><strong>Accent color:</strong> <code>BRAND_COLOR=#1F7A5C</code> (the deep teal-green of the "rbis" wordmark). Eye-picked from the JPG; refine in <code>.env</code> if it looks off on the deployed page. The orange-red star inside the globe (~<code>#D14F2A</code>) is a secondary accent and is <em>not</em> used in the Streamlit theme — only one <code>primaryColor</code> is set.</li>
+    </ul>
+    <div class="callout warn">
+      <strong>Streamlit config is not interpolated.</strong> <code>.streamlit/config.toml</code> does not expand env vars, so the brand color must be hardcoded there. <code>.env</code> remains the source of truth for any in-app uses (custom dividers, markdown). If you change the brand color, update <em>both</em> files.
+    </div>
+<pre><code># .streamlit/config.toml
+[theme]
+primaryColor = "#1F7A5C"
+font = "sans serif"</code></pre>
+    <p>Logo rendered in the header via <code>st.image(LOGO_PATH, width=160)</code>.</p>
+  </section>
+
+  <section id="deploy">
+    <h2>10. Deployment</h2>
+    <ol>
+      <li>Confirm <code>BRAND_COLOR</code> in <code>.env</code> (logo is already at <code>images/logo.jpg</code>).</li>
+      <li>Build the index locally:
+<pre><code>python -m venv .venv &amp;&amp; source .venv/bin/activate    # or .venv\Scripts\activate on Windows
+pip install -r requirements.txt
+python build_index.py
+git add vectorstore/ &amp;&amp; git commit -m "rebuild index"</code></pre>
+      </li>
+      <li>Push to <a href="https://github.com/usamaalam01/orbisdocs">github.com/usamaalam01/orbisdocs</a>.</li>
+      <li>On Streamlit Community Cloud:
+        <ul>
+          <li>Connect the repo, point to <code>streamlit_app.py</code>, Python 3.11.</li>
+          <li>Open the secrets UI and add each <code>.env</code> key in <strong>TOML</strong> format. Streamlit secrets are TOML, not dotenv — values must be quoted strings:</li>
+        </ul>
+<pre><code>LLM_PROVIDER = "groq"
+LLM_MODEL = "llama-3.3-70b-versatile"
+LLM_API_KEY = "gsk_..."
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+TOP_K = "4"
+SIMILARITY_THRESHOLD = "0.35"
+CHUNK_SIZE = "800"
+CHUNK_OVERLAP = "120"
+BRAND_COLOR = "#1F7A5C"
+LOGO_PATH = "images/logo.jpg"
+APP_PASSWORD = ""</code></pre>
+        <p><code>app/config.py</code> reads these via <code>os.getenv</code> after <code>dotenv</code> locally and via <code>st.secrets</code> on Streamlit Cloud — falling back from one to the other.</p>
+      </li>
+      <li>Deploy.</li>
+    </ol>
+  </section>
+
+  <section id="verify">
+    <h2>11. Verification (end-to-end test plan)</h2>
+    <p>After deploy, manually verify:</p>
+    <ol>
+      <li><strong>Cold start succeeds</strong> within ~30 s; chat input is reachable.</li>
+      <li><strong>In-scope question</strong> ("What services run on the Iris Accelerator?") returns a streamed answer with at least one citation linking back to <code>services.html</code> or <code>architecture.html</code>.</li>
+      <li><strong>Multi-turn follow-up</strong> ("And how do they communicate?") uses prior context and returns a coherent answer with citations.</li>
+      <li><strong>Off-topic question</strong> ("What's the weather in London?") returns the polite refusal text and no citations.</li>
+      <li><strong>Citation links open</strong> the correct upstream <code>docs.lab.orbisholding.com</code> page.</li>
+      <li><strong>Provider swap</strong> works: change <code>LLM_PROVIDER</code> / <code>LLM_MODEL</code> / <code>LLM_API_KEY</code> in Streamlit secrets, redeploy, ask a question — answer comes from the new provider.</li>
+      <li><strong>Index rebuild</strong> works: change a URL in <code>urls.txt</code>, rerun <code>build_index.py</code>, commit, redeploy — new content is retrievable.</li>
+      <li><strong>Optional password gate</strong>: if <code>APP_PASSWORD</code> is set, app refuses access until correct password is entered.</li>
+    </ol>
+  </section>
+
+  <section id="open">
+    <h2>12. Open items</h2>
+    <ul class="checklist">
+      <li class="done"><span class="box"></span> Orbis logo asset — <code>images/logo.jpg</code></li>
+      <li class="done"><span class="box"></span> Brand accent color hex — <code>#1F7A5C</code> <span class="pill done">eye-picked</span></li>
+      <li class="done"><span class="box"></span> GitHub repo URL — <a href="https://github.com/usamaalam01/orbisdocs">usamaalam01/orbisdocs</a></li>
+      <li><span class="box"></span> Groq API key <span class="pill todo">pending</span> — user will add to <code>.env</code> locally and to Streamlit Cloud secrets at deploy time</li>
+    </ul>
+  </section>
+
+  <section id="risks">
+    <h2>13. Risks &amp; mitigations</h2>
+    <table>
+      <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>Docs portal HTTPS cert breaks scraper</td><td>HTTP-first fetch with <code>verify=False</code> HTTPS fallback, documented in <code>build_index.py</code>.</td></tr>
+        <tr><td>Public Streamlit URL leaks Groq tokens</td><td>Optional <code>APP_PASSWORD</code> gate; Groq free tier limits exposure.</td></tr>
+        <tr><td>Streamlit Cloud cold-start RAM</td><td>MiniLM is small; cache resources with <code>@st.cache_resource</code>.</td></tr>
+        <tr><td>Off-topic answers from LLM general knowledge</td><td>Strict cosine-similarity threshold + system-prompt instruction to refuse when context is empty.</td></tr>
+        <tr><td>Stale committed index</td><td>Manual rebuild flow documented; small page count makes rebuilds fast.</td></tr>
+        <tr><td>FAISS pickle deserialization warning</td><td><code>allow_dangerous_deserialization=True</code> is required by LangChain; safe here because we author and commit the pickle ourselves.</td></tr>
+        <tr><td><code>sentence-transformers</code> pulls PyTorch (~700 MB) and may pressure Streamlit Cloud's 1 GB cap</td><td>If install fails or app OOMs, swap to <code>fastembed</code> (ONNX, ~150 MB) — drop-in <code>FastEmbedEmbeddings</code> wrapper in <code>langchain-community</code>; embedding model name and index would need to be regenerated.</td></tr>
+        <tr><td>Embedding model and persisted FAISS index drift apart</td><td>Treat them as coupled: any change to <code>EMBEDDING_MODEL</code> requires rerunning <code>build_index.py</code> and recommitting <code>vectorstore/</code>.</td></tr>
+        <tr><td>Cited URL unreachable to demo audience on the projector laptop</td><td>Confirm projector laptop is on Orbis network before the demo (the docs portal is public, but worth verifying live).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  Orbis Holding · Iris Accelerator RAG Demo · Spec authored with Claude · See <code>SPEC.md</code> for the source-of-truth document.
+</footer>
+
+</body>
+</html>
