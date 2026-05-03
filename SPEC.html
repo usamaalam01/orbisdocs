@@ -266,7 +266,7 @@
       <p class="tag">Plain-English Q&amp;A over the Iris Accelerator documentation, for an Orbis management demo.</p>
       <div class="meta">
         <span>Streamlit + LangChain + Groq + FAISS</span>
-        <span>Python 3.11</span>
+        <span>Python 3.13</span>
         <span>Status: spec finalized</span>
       </div>
     </div>
@@ -356,7 +356,7 @@ http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/troubleshooting.h
     <table>
       <thead><tr><th>Layer</th><th>Choice</th></tr></thead>
       <tbody>
-        <tr><td>Language</td><td>Python 3.11</td></tr>
+        <tr><td>Language</td><td>Python 3.13</td></tr>
         <tr><td>Packaging</td><td><code>requirements.txt</code> (pip)</td></tr>
         <tr><td>UI</td><td>Streamlit ≥ 1.32 (chat elements + streaming)</td></tr>
         <tr><td>Orchestration</td><td>LangChain (<code>langchain</code>, <code>langchain-community</code>, <code>langchain-groq</code>, <code>langchain-huggingface</code>)</td></tr>
@@ -533,7 +533,7 @@ git add vectorstore/ &amp;&amp; git commit -m "rebuild index"</code></pre>
       <li>Push to <a href="https://github.com/usamaalam01/orbisdocs">github.com/usamaalam01/orbisdocs</a>.</li>
       <li>On Streamlit Community Cloud:
         <ul>
-          <li>Connect the repo, point to <code>streamlit_app.py</code>, Python 3.11.</li>
+          <li>Connect the repo, point to <code>streamlit_app.py</code>, Python 3.13.</li>
           <li>Open the secrets UI and add each <code>.env</code> key in <strong>TOML</strong> format. Streamlit secrets are TOML, not dotenv — values must be quoted strings:</li>
         </ul>
 <pre><code>LLM_PROVIDER = "groq"

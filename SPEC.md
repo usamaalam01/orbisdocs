@@ -52,7 +52,7 @@ This is acceptable for a public-but-internal-IT-managed lab portal; document the
 
 | Layer | Choice |
 |---|---|
-| Language | Python 3.11 |
+| Language | Python 3.13 |
 | Packaging | `requirements.txt` (pip) |
 | UI | Streamlit ≥ 1.32 (chat elements + streaming) |
 | Orchestration | LangChain (`langchain`, `langchain-community`, `langchain-groq`, `langchain-huggingface`) |
@@ -217,7 +217,7 @@ prefer bullet lists for steps and short paragraphs for explanations.
    ```
 3. Push to the existing GitHub repo at https://github.com/usamaalam01/orbisdocs.
 4. On Streamlit Community Cloud:
-   - Connect the repo, point to `streamlit_app.py`, Python 3.11.
+   - Connect the repo, point to `streamlit_app.py`, Python 3.13.
    - Open the secrets UI and add each `.env` key in **TOML** format (Streamlit secrets are TOML, not dotenv — the values must be quoted strings). Example:
      ```toml
      LLM_PROVIDER = "groq"

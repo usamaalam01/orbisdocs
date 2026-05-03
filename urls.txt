@@ -1,0 +1,9 @@
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/index.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/architecture.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/infrastructure.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/database.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/services.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/device-manager.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/imssdk.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/developer-guide.html
+http://docs.lab.orbisholding.com/lab-machines/iris-accelerator/troubleshooting.html
